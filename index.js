@@ -24,11 +24,11 @@ app.post('/webhook', (req, res) => {
       console.log('Received Webhook Data:', JSON.stringify(data, null, 2)); // Log incoming data
   
       // Check if transactions array exists and contains data
-      if (!data.transactions || data.transactions.length === 0) {
+      /* if (!data.transactions || data.transactions.length === 0) {
         console.error('No transactions found in the received data');
         return res.status(400).send('No transactions found in the webhook data');
       }
-  
+   */
       // Send the raw data to the frontend
       io.emit('streamData', data); // Send entire raw data to frontend
   
