@@ -29,53 +29,11 @@ app.post('/webhook', (req, res) => {
         return res.status(400).send('No transactions found in the webhook data');
       }
   
-      // Process each transaction
-      data.transactions.forEach(transaction => {
-        // Construct the response with the relevant transaction details
-        const transactionDetails = {
-          blockHeight: data.blockHeight,
-          blockTime: data.blockTime,
-          blockhash: data.blockhash,
-          parentSlot: data.parentSlot,
-          previousBlockhash: data.previousBlockhash,
-
-          // Transaction metadata
-          computeUnitsConsumed: transaction.meta.computeUnitsConsumed,
-          err: transaction.meta.err,
-          fee: transaction.meta.fee,
-          innerInstructions: transaction.meta.innerInstructions,
-          logMessages: transaction.meta.logMessages,
-          postBalances: transaction.meta.postBalances,
-          postTokenBalances: transaction.meta.postTokenBalances,
-          preBalances: transaction.meta.preBalances,
-          preTokenBalances: transaction.meta.preTokenBalances,
-          rewards: transaction.meta.rewards,
-          status: transaction.meta.status,
-
-          // Transaction message and instructions
-          accountKeys: transaction.transaction.message.accountKeys.map(account => account.pubkey),
-          instructions: transaction.transaction.message.instructions,
-          recentBlockhash: transaction.transaction.message.recentBlockhash,
-
-          // Signatures for the transaction
-          signatures: transaction.signatures
-        };
-
-        // Log the extracted transaction details
-        console.log('Extracted Transaction Details:', JSON.stringify(transactionDetails, null, 2));
-  
-        // Add the transaction details to recent transactions
-        recentTransactions.unshift(transactionDetails);
-        if (recentTransactions.length > MAX_STORED_TRANSACTIONS) {
-          recentTransactions.pop();
-        }
-  
-        // Emit the transaction details to connected clients
-        io.emit('streamData', transactionDetails);
-      });
+      // Send the raw data to the frontend
+      io.emit('streamData', data); // Send entire raw data to frontend
   
       // Send a success response
-      res.status(200).send('Webhook received and transaction details processed');
+      res.status(200).send('Webhook received and raw data processed');
     } catch (error) {
       console.error('Error processing Solana webhook:', error);
       res.status(500).send('Internal Server Error');
