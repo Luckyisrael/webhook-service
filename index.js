@@ -31,13 +31,14 @@ app.post('/webhook', (req, res) => {
   
       // Process each transaction
       data.transactions.forEach(transaction => {
+        // Construct the response with the relevant transaction details
         const transactionDetails = {
           blockHeight: data.blockHeight,
           blockTime: data.blockTime,
           blockhash: data.blockhash,
           parentSlot: data.parentSlot,
           previousBlockhash: data.previousBlockhash,
-  
+
           // Transaction metadata
           computeUnitsConsumed: transaction.meta.computeUnitsConsumed,
           err: transaction.meta.err,
@@ -50,16 +51,17 @@ app.post('/webhook', (req, res) => {
           preTokenBalances: transaction.meta.preTokenBalances,
           rewards: transaction.meta.rewards,
           status: transaction.meta.status,
-  
+
           // Transaction message and instructions
           accountKeys: transaction.transaction.message.accountKeys.map(account => account.pubkey),
           instructions: transaction.transaction.message.instructions,
           recentBlockhash: transaction.transaction.message.recentBlockhash,
-  
+
           // Signatures for the transaction
           signatures: transaction.signatures
         };
-  
+
+        // Log the extracted transaction details
         console.log('Extracted Transaction Details:', JSON.stringify(transactionDetails, null, 2));
   
         // Add the transaction details to recent transactions
@@ -79,8 +81,6 @@ app.post('/webhook', (req, res) => {
       res.status(500).send('Internal Server Error');
     }
   });
-  
-
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
