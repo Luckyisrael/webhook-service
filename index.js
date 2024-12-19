@@ -23,22 +23,58 @@ app.post('/webhook', (req, res) => {
       const data = req.body;
       console.log('Received Webhook Data:', JSON.stringify(data, null, 2)); // Log incoming data
   
-      // Check if transactions array exists and contains data
-      /* if (!data.transactions || data.transactions.length === 0) {
-        console.error('No transactions found in the received data');
-        return res.status(400).send('No transactions found in the webhook data');
-      }
-   */
-      // Send the raw data to the frontend
-      io.emit('streamData', data); // Send entire raw data to frontend
+      // Process each transaction
+      data.transactions.forEach(transaction => {
+        const transactionDetails = {
+          blockHeight: data.blockHeight,
+          blockTime: data.blockTime,
+          blockhash: data.blockhash,
+          parentSlot: data.parentSlot,
+          previousBlockhash: data.previousBlockhash,
+  
+          // Transaction metadata
+          computeUnitsConsumed: transaction.meta.computeUnitsConsumed,
+          err: transaction.meta.err,
+          fee: transaction.meta.fee,
+          innerInstructions: transaction.meta.innerInstructions,
+          logMessages: transaction.meta.logMessages,
+          postBalances: transaction.meta.postBalances,
+          postTokenBalances: transaction.meta.postTokenBalances,
+          preBalances: transaction.meta.preBalances,
+          preTokenBalances: transaction.meta.preTokenBalances,
+          rewards: transaction.meta.rewards,
+          status: transaction.meta.status,
+  
+          // Transaction message and instructions
+          accountKeys: transaction.transaction.message.accountKeys.map(account => account.pubkey),
+          instructions: transaction.transaction.message.instructions,
+          recentBlockhash: transaction.transaction.message.recentBlockhash,
+  
+          // Signatures for the transaction
+          signatures: transaction.signatures
+        };
+  
+        console.log('Extracted Transaction Details:', JSON.stringify(transactionDetails, null, 2));
+  
+        // Add the transaction details to recent transactions
+        recentTransactions.unshift(transactionDetails);
+        if (recentTransactions.length > MAX_STORED_TRANSACTIONS) {
+          recentTransactions.pop();
+        }
+  
+        // Emit the transaction details to connected clients
+        io.emit('streamData', transactionDetails);
+      });
   
       // Send a success response
-      res.status(200).send('Webhook received and raw data processed');
+      res.status(200).send('Webhook received and transaction details processed');
     } catch (error) {
       console.error('Error processing Solana webhook:', error);
       res.status(500).send('Internal Server Error');
     }
   });
+  
+
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
